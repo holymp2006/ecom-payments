@@ -1,0 +1,32 @@
+# dependencies
+node_modules
+npm-debug.log
+
+# build output
+dist
+
+# testing
+coverage
+*.spec.ts
+
+# environment
+.env
+.env.*
+
+# ide
+.vscode
+.idea
+*.swp
+*.swo
+
+# os
+.DS_Store
+Thumbs.db
+
+# git
+.git
+.gitignore
+
+# misc
+*.log
+README.md

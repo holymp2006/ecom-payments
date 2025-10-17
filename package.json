@@ -1,0 +1,30 @@
+{
+  "name": "ecom-payments-monorepo",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Ecom payments system with Next.js dashboard and NestJS backend",
+  "workspaces": [
+    "apps/dashboard",
+    "apps/backend"
+  ],
+  "scripts": {
+    "dev:dashboard": "npm run dev --workspace=apps/dashboard",
+    "dev:backend": "npm run start:dev --workspace=apps/backend",
+    "build:dashboard": "npm run build --workspace=apps/dashboard",
+    "build:backend": "npm run build --workspace=apps/backend",
+    "build": "npm run build:dashboard && npm run build:backend",
+    "docker:up": "docker-compose up -d",
+    "docker:down": "docker-compose down",
+    "typeorm": "npm run typeorm --workspace=apps/backend"
+  },
+  "keywords": [
+    "monorepo",
+    "nextjs",
+    "nestjs",
+    "typeorm",
+    "rabbitmq",
+    "postgres"
+  ],
+  "author": "",
+  "license": "MIT"
+}

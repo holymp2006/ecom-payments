@@ -1,0 +1,30 @@
+# dependencies
+node_modules
+npm-debug.log
+
+# build output
+.next
+out
+dist
+
+# environment
+.env
+.env.*
+
+# ide
+.vscode
+.idea
+*.swp
+*.swo
+
+# os
+.DS_Store
+Thumbs.db
+
+# git
+.git
+.gitignore
+
+# misc
+*.log
+README.md
