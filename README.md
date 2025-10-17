@@ -1,4 +1,4 @@
-# Ecoms Payments Test
+# Ecom Payments Test
 
 ## Installation & Setup
 1. Clone the repository
