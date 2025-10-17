@@ -1,6 +1,24 @@
 # Ecoms Payments Test
 
-## **The Interview Problem**
+## Installation & Setup
+1. Clone the repository
+
+2. Install dependencies
+
+```bash
+npm install
+```
+3. Run Docker containers
+
+```bash
+docker-compose up -d
+```
+
+4. View the dashboard at `http://localhost:3000` 
+
+5. View the RabbitMQ management UI at `http://localhost:15672` (guest/guest) (Exposed for testing purposes only).
+
+## The Short Screening Problem
 
 The challenge requires building a payment system demonstrating three core competencies:
 
