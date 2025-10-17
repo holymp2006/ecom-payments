@@ -6,7 +6,7 @@
 2. Run Docker containers
 
 ```bash
-docker-compose up -d
+docker compose up -d
 ```
 
 3. View the dashboard at `http://localhost:3000` 
