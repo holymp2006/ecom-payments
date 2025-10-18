@@ -19,7 +19,7 @@ The challenge requires building a payment system demonstrating three core compet
 
 1. **NestJS + RabbitMQ**: Implement reliable message-based communication with:
    - One publisher and one consumer
-   - Retry mechanism with exponential backoff
+   - Retry mechanism
    - Dead Letter Queue (DLQ) for failed messages
    - Idempotent processing to prevent duplicate processing
 
@@ -80,7 +80,7 @@ if (retryCount < this.MAX_RETRY_COUNT) {
 }
 ```
 
-**How it works (lines 112-133):**
+**How it works (lines 119-127):**
 1. Retry exchange: `transactions.retry.exchange`
 2. Retry queue: `transactions.retry.queue` with:
    - `x-message-ttl: 5000` (5 second delay)
@@ -172,9 +172,9 @@ IDX_TRANSACTIONS_CUSTOMER_CREATED (customerId, createdAt)
 **Index Choice Rationale:**
 
 **Single-column indexes chosen because:**
-- **status**: Frequently used in `findByStatus()` query (transaction.service.ts:52-61)
-- **merchantId**: Used in `findByMerchantId()` query (line 30-38)
-- **customerId**: Used in `findByCustomerId()` query (line 41-49)
+- **status**: Frequently used in `findByStatus()` query (transaction.service.ts:67-76)
+- **merchantId**: Used in `findByMerchantId()` query (transaction.service.ts:45-54)
+- **customerId**: Used in `findByCustomerId()` query (transaction.service.ts:56-65)
 - **createdAt**: All queries include `ORDER BY createdAt DESC`
 
 **Composite indexes chosen because:**
@@ -197,7 +197,7 @@ IDX_TRANSACTIONS_CUSTOMER_CREATED (customerId, createdAt)
 
 #### **Indexed Queries in Action**
 
-**Example query** (apps/backend/src/modules/transaction/transaction.service.ts:30-38):
+**Example query** (apps/backend/src/modules/transaction/transaction.service.ts:45-54):
 ```typescript
 async findByMerchantId(merchantId: string, limit: number = 100) {
   return await this.transactionRepository.find({
@@ -248,6 +248,24 @@ res.setHeader(CORRELATION_ID_HEADER, correlationId);
 console.log(`[${correlationId}] ${req.method} ${req.url}`);
 ```
 
+**Step 4.5: Logging Interceptor** (apps/backend/src/common/interceptors/logging.interceptor.ts:12-25)
+```typescript
+intercept(context: ExecutionContext, next: CallHandler): Observable<any> {
+  const req = context.switchToHttp().getRequest();
+  const correlationId = req['correlationId'];
+  const startTime = Date.now();
+
+  return next.handle().pipe(
+    tap(() => {
+      const duration = Date.now() - startTime;
+      console.log(`[${correlationId}] Request completed in ${duration}ms`);
+    }),
+  );
+}
+```
+
+**Purpose:** Tracks request duration and logs completion time with correlation ID for performance monitoring.
+
 **Step 5: RabbitMQ message publishing** (apps/backend/src/modules/rabbitmq/rabbitmq.service.ts:138-172)
 ```typescript
 async publish(routingKey: string, data: any, correlationId: string) {
@@ -268,12 +286,13 @@ const { data, correlationId } = message;
 
 **Complete trace example:**
 ```
-[abc-123] GET /api/transactions          ← Middleware
-[abc-123] Fetching transactions          ← Controller
-[abc-123] Published message               ← Publisher
-[abc-123] Consumer received message       ← Consumer
-[abc-123] Processing transaction          ← Business logic
-[abc-123] Message processed successfully  ← Completion
+[abc-123] GET /api/transactions                ← Middleware
+[abc-123] Fetching transactions                ← Controller
+[abc-123] Published message                     ← Publisher
+[abc-123] Request completed in 45ms             ← Logging Interceptor
+[abc-123] Consumer received message             ← Consumer
+[abc-123] Processing transaction                ← Business logic
+[abc-123] Message processed successfully        ← Completion
 ```
 
 #### **SSR Dashboard Features** (apps/dashboard/src/app/page.tsx)
