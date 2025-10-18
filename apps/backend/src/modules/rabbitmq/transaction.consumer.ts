@@ -50,14 +50,14 @@ export class TransactionConsumer implements OnModuleInit {
     // process the transaction
     try {
       const transaction = await this.transactionService.findById(
-        data.transactionId,
+        data.id,
       );
 
       if (!transaction) {
         console.error(
-          `[${correlationId}] Transaction ${data.transactionId} not found`,
+          `[${correlationId}] Transaction ${data.id} not found`,
         );
-        throw new Error(`Transaction ${data.transactionId} not found`);
+        throw new Error(`Transaction ${data.id} not found`);
       }
 
       // simulate transaction processing logic
@@ -96,7 +96,7 @@ export class TransactionConsumer implements OnModuleInit {
     // create a deterministic message ID based on message content
     // this ensures the same message always gets the same ID
     const { data } = message;
-    const idempotencyKey = `${data.transactionId}`;
+    const idempotencyKey = `${data.id}`;
     // generate SHA-256 hash of the idempotency key
     return createHash('sha256').update(idempotencyKey).digest('hex');
   }
