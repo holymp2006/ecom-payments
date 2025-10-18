@@ -15,8 +15,8 @@ describe('TransactionConsumer', () => {
 
   const mockTransaction: Transaction = {
     id: 'transaction-123',
-    amount: 100.50,
-    currency: 'USD',
+    amount: 100.500,
+    currency: 'KWD',
     status: TransactionStatus.PENDING,
     merchantId: 'merchant123',
     customerId: 'customer456',

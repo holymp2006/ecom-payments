@@ -65,8 +65,7 @@ export class TransactionConsumer implements OnModuleInit {
         `[${correlationId}] Processing transaction ${transaction.id}`,
       );
 
-      // update transaction status based on processing logic
-      // this is where you would implement your business logic
+      // dummy business logic to set status. This would be replaced with real logic to capture payment, etc.
       const newStatus =
         Math.random() > 0.2
           ? TransactionStatus.COMPLETED

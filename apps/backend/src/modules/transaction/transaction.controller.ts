@@ -13,7 +13,8 @@ export class TransactionController {
     @Body() createTransactionDto: CreateTransactionDto,
     @Req() req: Request
   ): Promise<Transaction> {
-    return await this.transactionService.create(createTransactionDto);
+    const correlationId = req['correlationId'] || 'unknown';
+    return await this.transactionService.create(createTransactionDto, correlationId);
   }
 
   @Get()

@@ -4,11 +4,13 @@ const BACKEND_URL = process.env.BACKEND_URL || 'http://localhost:3001';
 
 export interface Transaction {
   id: string;
-  amount: number;
+  amount: number | string;
   currency: string;
   status: string;
   merchantId: string;
   customerId: string;
+  description?: string;
+  metadata?: Record<string, unknown>;
   createdAt: string;
   updatedAt: string;
 }

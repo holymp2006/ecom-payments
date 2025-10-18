@@ -3,15 +3,17 @@ import { getRepositoryToken } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { TransactionService } from './transaction.service';
 import { Transaction, TransactionStatus } from './entities/transaction.entity';
+import { RabbitMQService } from '../rabbitmq/rabbitmq.service';
 
 describe('TransactionService', () => {
   let service: TransactionService;
   let repository: Repository<Transaction>;
+  let rabbitMQService: RabbitMQService;
 
   const mockTransaction: Transaction = {
     id: '123e4567-e89b-12d3-a456-426614174000',
-    amount: 100.50,
-    currency: 'USD',
+    amount: 100.500,
+    currency: 'KWD',
     status: TransactionStatus.PENDING,
     merchantId: 'merchant123',
     customerId: 'customer456',
@@ -28,6 +30,10 @@ describe('TransactionService', () => {
     findOne: jest.fn(),
   };
 
+  const mockRabbitMQService = {
+    publish: jest.fn(),
+  };
+
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
       providers: [
@@ -36,11 +42,16 @@ describe('TransactionService', () => {
           provide: getRepositoryToken(Transaction),
           useValue: mockRepository,
         },
+        {
+          provide: RabbitMQService,
+          useValue: mockRabbitMQService,
+        },
       ],
     }).compile();
 
     service = module.get<TransactionService>(TransactionService);
     repository = module.get<Repository<Transaction>>(getRepositoryToken(Transaction));
+    rabbitMQService = module.get<RabbitMQService>(RabbitMQService);
   });
 
   afterEach(() => {
@@ -48,22 +59,47 @@ describe('TransactionService', () => {
   });
 
   describe('create', () => {
-    it('should create and save a transaction', async () => {
+    it('should create and save a transaction and publish to rabbitmq', async () => {
       const createDto = {
-        amount: 100.50,
-        currency: 'USD',
+        amount: 100.500,
+        currency: 'KWD',
         merchantId: 'merchant123',
         customerId: 'customer456',
       };
+      const correlationId = 'test-correlation-id';
 
       mockRepository.create.mockReturnValue(mockTransaction);
       mockRepository.save.mockResolvedValue(mockTransaction);
+      mockRabbitMQService.publish.mockResolvedValue(undefined);
 
-      const result = await service.create(createDto);
+      const result = await service.create(createDto, correlationId);
 
       expect(mockRepository.create).toHaveBeenCalledWith(createDto);
       expect(mockRepository.save).toHaveBeenCalledWith(mockTransaction);
+      expect(mockRabbitMQService.publish).toHaveBeenCalledWith(
+        'transaction.created',
+        mockTransaction,
+        correlationId,
+      );
       expect(result).toEqual(mockTransaction);
+    });
+
+    it('should throw error if rabbitmq publish fails', async () => {
+      const createDto = {
+        amount: 100.500,
+        currency: 'KWD',
+        merchantId: 'merchant123',
+        customerId: 'customer456',
+      };
+      const correlationId = 'test-correlation-id';
+
+      mockRepository.create.mockReturnValue(mockTransaction);
+      mockRepository.save.mockResolvedValue(mockTransaction);
+      mockRabbitMQService.publish.mockRejectedValue(new Error('rabbitmq error'));
+
+      await expect(service.create(createDto, correlationId)).rejects.toThrow(
+        'rabbitmq error',
+      );
     });
   });
 

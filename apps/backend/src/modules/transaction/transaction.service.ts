@@ -3,17 +3,32 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Transaction, TransactionStatus } from './entities/transaction.entity';
 import { CreateTransactionDto } from './dto/create-transaction.dto';
+import { RabbitMQService } from '../rabbitmq/rabbitmq.service';
+import { rabbitMQConfig } from '../rabbitmq/rabbitmq.config';
 
 @Injectable()
 export class TransactionService {
   constructor(
     @InjectRepository(Transaction)
     private readonly transactionRepository: Repository<Transaction>,
+    private readonly rabbitMQService: RabbitMQService,
   ) {}
 
-  async create(createTransactionDto: CreateTransactionDto): Promise<Transaction> {
+  async create(
+    createTransactionDto: CreateTransactionDto,
+    correlationId: string,
+  ): Promise<Transaction> {
     const transaction = this.transactionRepository.create(createTransactionDto);
-    return await this.transactionRepository.save(transaction);
+    const savedTransaction = await this.transactionRepository.save(transaction);
+
+    // publish message to rabbitmq for processing
+    await this.rabbitMQService.publish(
+      rabbitMQConfig.routingKeys.transactionCreated,
+      savedTransaction,
+      correlationId,
+    );
+
+    return savedTransaction;
   }
 
   async findAll(limit: number = 100): Promise<Transaction[]> {

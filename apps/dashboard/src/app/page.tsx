@@ -1,6 +1,7 @@
 import { headers } from 'next/headers';
 import { getCorrelationId } from '@/lib/correlation';
 import { fetchTransactions, Transaction } from '@/lib/api';
+import CreatePaymentButton from '@/components/CreatePaymentButton';
 
 async function getTransactionsData(correlationId: string): Promise<Transaction[]> {
   return await fetchTransactions(correlationId);
@@ -23,10 +24,12 @@ export default async function DashboardPage() {
           <strong>Correlation ID:</strong> {correlationId}
         </div>
 
+        <div className="actions-bar">
+          <h2 style={{ fontSize: '1.25rem' }}>Recent Transactions</h2>
+          <CreatePaymentButton correlationId={correlationId} />
+        </div>
+
         <div className="transactions-grid">
-          <h2 style={{ marginBottom: '1rem', fontSize: '1.25rem' }}>
-            Recent Transactions
-          </h2>
 
           {transactions.length === 0 ? (
             <p style={{ color: '#666' }}>No transactions found.</p>
@@ -40,7 +43,7 @@ export default async function DashboardPage() {
                 <div className="transaction-field">
                   <label>Amount</label>
                   <span>
-                    {transaction.currency} {transaction.amount.toFixed(2)}
+                    {transaction.currency} {Number(transaction.amount).toFixed(3)}
                   </span>
                 </div>
                 <div className="transaction-field">
